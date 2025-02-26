@@ -2,6 +2,7 @@ package com.devsuperior.dscommerce.services;
 
 import java.util.List;
 
+import com.devsuperior.dscommerce.dto.UserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -39,6 +40,25 @@ public class UserService implements UserDetailsService {
 		}
 		
 		return user;
+	}
+
+	protected User authenticated() {
+		try {
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			Jwt jwtPrincipal = (Jwt) authentication.getPrincipal();
+			String username = jwtPrincipal.getClaim("username");
+
+			return repository.findByEmail(username).get();
+
+		} catch (Exception e) {
+			throw new UsernameNotFoundException("Email not found");
+		}
+	}
+
+	@Transactional(readOnly = true)
+	public UserDTO getMe(){
+		User user = authenticated();
+		return new UserDTO(user);
 	}
 
 }
